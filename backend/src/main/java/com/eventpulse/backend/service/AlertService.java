@@ -1,19 +1,22 @@
 package com.eventpulse.backend.service;
 
 import com.eventpulse.backend.dto.CreateAlertRequest;
+import com.eventpulse.backend.exception.ResourceNotFoundException;
 import com.eventpulse.backend.model.Alert;
+import com.eventpulse.backend.repository.AlertRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Service   // tells Spring: manage this class, make it injectable
+@Service
 public class AlertService {
 
-    // In-memory storage — just a list for now
-    // We will replace this with PostgreSQL in the next phase
-    private final List<Alert> alerts = new ArrayList<>();
+    private final AlertRepository alertRepository;
+
+    public AlertService(AlertRepository alertRepository) {
+        this.alertRepository = alertRepository;
+    }
 
     public Alert createAlert(CreateAlertRequest request) {
         Alert alert = new Alert(
@@ -21,21 +24,26 @@ public class AlertService {
                 request.getDescription(),
                 request.getSeverity()
         );
-        alerts.add(alert);
-        return alert;
+        return alertRepository.save(alert);
     }
 
     public List<Alert> getAllAlerts() {
-        return new ArrayList<>(alerts);  // return a copy, not the real list
+        return alertRepository.findAll();
     }
 
-    public Optional<Alert> getAlertById(String id) {
-        return alerts.stream()
-                .filter(a -> a.getId().equals(id))
-                .findFirst();
+    public Alert getAlertById(String id) {
+        // Now throws instead of returning Optional
+        return alertRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Alert not found with id: " + id)
+                );
     }
 
-    public boolean deleteAlert(String id) {
-        return alerts.removeIf(a -> a.getId().equals(id));
+    public void deleteAlert(String id) {
+        // Verify it exists first — throw 404 if not
+        if (!alertRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Alert not found with id: " + id);
+        }
+        alertRepository.deleteById(id);
     }
 }
