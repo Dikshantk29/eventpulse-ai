@@ -14,15 +14,15 @@ function App() {
   }, []);
 
   const fetchAlerts = async () => {
-    try {
-      const response = await getAlerts();
-      setAlerts(response.data);
-    } catch (err) {
-      setError("Could not connect to backend. Is it running?");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const response = await getAlerts();
+    setAlerts(response.data.content);   // ← was response.data
+  } catch (err) {
+    setError('Could not connect to backend. Is it running?');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCreateAlert = async (formData) => {
     try {
