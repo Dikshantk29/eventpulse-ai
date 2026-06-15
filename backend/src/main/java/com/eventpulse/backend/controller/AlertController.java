@@ -1,6 +1,7 @@
 package com.eventpulse.backend.controller;
 
 import com.eventpulse.backend.dto.CreateAlertRequest;
+import com.eventpulse.backend.dto.PagedResponse;
 import com.eventpulse.backend.model.Alert;
 import com.eventpulse.backend.service.AlertService;
 import jakarta.validation.Valid;
@@ -28,9 +29,21 @@ public class AlertController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Alert>> getAllAlerts() {
-        return ResponseEntity.ok(alertService.getAllAlerts());
+    public ResponseEntity<PagedResponse<Alert>> getAlerts(
+            // All parameters are optional — sensible defaults provided
+            @RequestParam(defaultValue = "0")          int page,
+            @RequestParam(defaultValue = "10")         int size,
+            @RequestParam(defaultValue = "createdAt")  String sortBy,
+            @RequestParam(defaultValue = "desc")       String sortDir,
+            @RequestParam(required = false)            String severity,
+            @RequestParam(required = false)            String status) {
+
+        PagedResponse<Alert> response = alertService.getAlerts(
+                page, size, sortBy, sortDir, severity, status
+        );
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Alert> getAlert(@PathVariable String id) {
